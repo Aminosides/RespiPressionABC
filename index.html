@@ -1,140 +1,191 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Titration de la PEEP</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        h2, h3 {
-            text-align: center;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #888;
-        }
-        th, td {
-            padding: 8px;
-            text-align: center;
-        }
-        input {
-            width: 70px;
-        }
-        button {
-            margin-top: 15px;
-            padding: 10px;
-            width: 100%;
-            background-color: #007BFF;
-            color: white;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .input-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        .input-row label {
-            flex: 1 1 48%;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Titration de la PEEP</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header img {
+      max-width: 80px;
+      margin-bottom: 10px;
+    }
+    h2 {
+      margin: 0;
+      color: #007BFF;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: white;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #007BFF;
+      color: white;
+    }
+    th, td {
+      padding: 6px;
+      text-align: center;
+    }
+    input {
+      width: 70px;
+      padding: 4px;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px;
+      width: 100%;
+      background-color: #28a745;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    }
+    .input-row label {
+      flex: 1 1 45%;
+    }
+  </style>
 </head>
 <body>
 
-<h2>Épreuve de titration de la PEEP</h2>
+<header>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/3/32/Star_of_life2.svg" alt="Logo Réanimation" />
+  <h2>Épreuve de titration de la PEEP</h2>
+</header>
 
 <div id="form">
-    <p>Entrer jusqu'à 4 mesures :</p>
-    <div id="entries"></div>
-    <button onclick="ajouterLigne()">Ajouter une mesure</button>
-    <button onclick="calculer()">Calculer</button>
+  <p>Entrer jusqu'à 4 mesures :</p>
+  <div id="entries"></div>
+  <button onclick="ajouterLigne()">Ajouter une mesure</button>
+  <button onclick="calculer()">Calculer</button>
+  <button onclick="exporterWord()">Exporter en Word</button>
 </div>
 
 <h3>Résultats</h3>
 <table id="resultTable" style="display:none;">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>PEEP (cmH₂O)</th>
-            <th>PEEP Totale</th>
-            <th>VT (mL)</th>
-            <th>Pplat (cmH₂O)</th>
-            <th>Compliance</th>
-            <th>Pression motrice</th>
-            <th>Élastance</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>PEEP</th>
+      <th>PEEP Totale</th>
+      <th>VT</th>
+      <th>Pplat</th>
+      <th>FiO₂ (%)</th>
+      <th>PaO₂</th>
+      <th>PaO₂/FiO₂</th>
+      <th>Compliance</th>
+      <th>ΔP</th>
+      <th>Élastance</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
 </table>
 
 <script>
-    let mesureIndex = 0;
+  let mesureIndex = 0;
 
-    function ajouterLigne() {
-        if (mesureIndex >= 4) return;
+  function ajouterLigne() {
+    if (mesureIndex >= 4) return;
+    const container = document.getElementById("entries");
+    const div = document.createElement("div");
+    div.className = "input-row";
+    div.innerHTML = `
+      <label>PEEP <input type="number" id="peep${mesureIndex}" step="0.1"></label>
+      <label>PEEP Totale <input type="number" id="peeptot${mesureIndex}" step="0.1"></label>
+      <label>VT <input type="number" id="vt${mesureIndex}" step="0.1"></label>
+      <label>Pplat <input type="number" id="pplat${mesureIndex}" step="0.1"></label>
+      <label>FiO₂ (%) <input type="number" id="fio2${mesureIndex}" step="0.1"></label>
+      <label>PaO₂ (mmHg) <input type="number" id="pao2${mesureIndex}" step="0.1"></label>
+    `;
+    container.appendChild(div);
+    mesureIndex++;
+  }
 
-        const container = document.getElementById("entries");
-        const div = document.createElement("div");
-        div.className = "input-row";
-        div.innerHTML = `
-            <label>PEEP <input type="number" id="peep${mesureIndex}" step="0.1"></label>
-            <label>PEEP Totale <input type="number" id="peeptot${mesureIndex}" step="0.1"></label>
-            <label>VT <input type="number" id="vt${mesureIndex}" step="0.1"></label>
-            <label>Pplat <input type="number" id="pplat${mesureIndex}" step="0.1"></label>
-        `;
-        container.appendChild(div);
-        mesureIndex++;
+  function calculer() {
+    const tbody = document.querySelector("#resultTable tbody");
+    tbody.innerHTML = "";
+    for (let i = 0; i < mesureIndex; i++) {
+      const peep = parseFloat(document.getElementById(`peep${i}`).value);
+      const peeptot = parseFloat(document.getElementById(`peeptot${i}`).value);
+      const vt = parseFloat(document.getElementById(`vt${i}`).value);
+      const pplat = parseFloat(document.getElementById(`pplat${i}`).value);
+      const fio2 = parseFloat(document.getElementById(`fio2${i}`).value);
+      const pao2 = parseFloat(document.getElementById(`pao2${i}`).value);
+      if (isNaN(peeptot) || isNaN(vt) || isNaN(pplat) || isNaN(fio2) || isNaN(pao2)) continue;
+      const deltaP = pplat - peeptot;
+      const compliance = deltaP !== 0 ? vt / deltaP : 0;
+      const elastance = compliance !== 0 ? 1 / compliance : 0;
+      const pfRatio = fio2 !== 0 ? pao2 / (fio2 / 100) : 0;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${isNaN(peep) ? "-" : peep}</td>
+        <td>${peeptot}</td>
+        <td>${vt}</td>
+        <td>${pplat}</td>
+        <td>${fio2}</td>
+        <td>${pao2}</td>
+        <td>${pfRatio.toFixed(0)}</td>
+        <td>${compliance.toFixed(2)}</td>
+        <td>${deltaP.toFixed(2)}</td>
+        <td>${elastance.toFixed(2)}</td>
+      `;
+      tbody.appendChild(row);
     }
+    document.getElementById("resultTable").style.display = "table";
+  }
 
-    function calculer() {
-        const tbody = document.querySelector("#resultTable tbody");
-        tbody.innerHTML = "";
-        for (let i = 0; i < mesureIndex; i++) {
-            const peep = parseFloat(document.getElementById(`peep${i}`).value);
-            const peeptot = parseFloat(document.getElementById(`peeptot${i}`).value);
-            const vt = parseFloat(document.getElementById(`vt${i}`).value);
-            const pplat = parseFloat(document.getElementById(`pplat${i}`).value);
+  function exporterWord() {
+    const table = document.getElementById("resultTable").outerHTML;
+    const html = `
+      <html>
+      <head><meta charset='utf-8'><title>Export PEEP</title></head>
+      <body>
+        <h2>Épreuve de titration de la PEEP</h2>
+        ${table}
+      </body>
+      </html>`;
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Titration_PEEP.doc';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
-            if (isNaN(peeptot) || isNaN(vt) || isNaN(pplat)) continue;
-
-            const deltaP = pplat - peeptot;
-            const compliance = deltaP !== 0 ? vt / deltaP : 0;
-            const elastance = compliance !== 0 ? 1 / compliance : 0;
-
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${i + 1}</td>
-                <td>${isNaN(peep) ? "-" : peep}</td>
-                <td>${peeptot}</td>
-                <td>${vt}</td>
-                <td>${pplat}</td>
-                <td>${compliance.toFixed(2)}</td>
-                <td>${deltaP.toFixed(2)}</td>
-                <td>${elastance.toFixed(2)}</td>
-            `;
-            tbody.appendChild(row);
-        }
-
-        document.getElementById("resultTable").style.display = "table";
-    }
-
-    ajouterLigne();
+  ajouterLigne();
 </script>
 
 </body>
